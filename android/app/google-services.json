@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1049923675086",
+    "project_id": "handover-a319d",
+    "storage_bucket": "handover-a319d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1049923675086:android:208ab0ea639ac2ca1fc19f",
+        "android_client_info": {
+          "package_name": "com.example.handover"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1049923675086-4mk88dfkelffpv7v5gddiot0mnmt8p6h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.handover",
+            "certificate_hash": "01dfd3831a8bd02d14cc89813ec4e05e1b28d03f"
+          }
+        },
+        {
+          "client_id": "1049923675086-rvb0mf7626s4vdl9f32irjj3drg8usvd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXNkeI-kRVrZldQubk5caVFnWT-Ev7dmU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1049923675086-rvb0mf7626s4vdl9f32irjj3drg8usvd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
