@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geodesy/geodesy.dart' as GeoDes;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:handover/data/model/driver/driver_model.dart';
 import 'package:handover/data/model/order/order_model.dart';
 import 'package:handover/data/notification/local_notification.dart';
 import 'package:handover/data/repository/driver_repository_imp.dart';
@@ -26,32 +24,22 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
   TrackingBloc() : super(TrackingInitial()) {
     on<InitializeMap>(initializeMapHandler);
     on<TrackingComplete>(onDispose);
-    on<UpdateMapEvent>((event, emit) => emit(
-        InitialMapState(orderModel: event.orderModel, markers: event.markers)));
+    on<UpdateMapEvent>((event, emit) => emit(UpdateMapMarkers(
+        orderModel: event.orderModel, markers: event.markers)));
   }
 
   initializeMapHandler(TrackingEvent event, Emitter<TrackingState> emit) async {
     emit(LoadingState());
-    var orderDetails = await _orderUseCase.execute("567");
-    _driverStream =
-        _driverUseCase.execute(orderDetails.orderId).listen((event) {
+    var order = await _orderUseCase.execute("567");
+    _driverStream = _driverUseCase.execute(order.orderId).listen((event) {
       var driver = event.docs.first.data();
 
       Set<Marker> markers = {
-        _addMarkers(
-            "driver",
-            LatLng(driver.currentLocation.latitude,
-                driver.currentLocation.longitude)),
-        _addMarkers(
-            "pickup",
-            LatLng(orderDetails.pickUpPoint.latitude,
-                orderDetails.pickUpPoint.longitude)),
-        _addMarkers(
-            "delivery",
-            LatLng(orderDetails.deliveryPoint.latitude,
-                orderDetails.deliveryPoint.longitude))
+        _addMarkers("driver", driver.location),
+        _addMarkers("pickup", order.pickUpPoint),
+        _addMarkers("delivery", order.deliveryPoint)
       };
-      add(UpdateMapEvent(orderModel: orderDetails, markers: markers));
+      add(UpdateMapEvent(orderModel: order, markers: markers));
     });
   }
 
@@ -63,11 +51,11 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
     return marker;
   }
 
-  _isDriverCloser(GeoDes.LatLng driver, GeoDes.LatLng target, num area) {
-    final geodesy = GeoDes.Geodesy();
-    final des = geodesy.distanceBetweenTwoGeoPoints(driver, target);
-    return des <= area;
-  }
+  // _isDriverCloser(GeoDes.LatLng driver, GeoDes.LatLng target, num area) {
+  //   final geodesy = GeoDes.Geodesy();
+  //   final des = geodesy.distanceBetweenTwoGeoPoints(driver, target);
+  //   return des <= area;
+  // }
 
   _sendNotification(title, body) async {
     var localNotification = LocalNotification();

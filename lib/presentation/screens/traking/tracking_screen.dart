@@ -16,18 +16,22 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   Widget build(BuildContext context) {
     _bloc = BlocProvider.of<TrackingBloc>(context);
-    _bloc.add(InitializeMap());
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _bloc.add(InitializeMap());
+    });
 
     return Scaffold(
       body: BlocBuilder(
         bloc: BlocProvider.of<TrackingBloc>(context),
         builder: (context, state) {
-          return Stack(
-            children: [
-              if (state is LoadingState) ...[
-                const Center(child: CircularProgressIndicator())
-              ] else if (state is InitialMapState) ...[
-                GoogleMap(
+          var loadingWidget = (state is LoadingState)
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Container();
+
+          var mapWidget = (state is UpdateMapMarkers)
+              ? GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
                       state.orderModel.deliveryPoint.latitude,
@@ -36,16 +40,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     zoom: 16.0,
                   ),
                   markers: state.markers,
-                ),
-
-                // TODO Bottom Sheet
-              ] else if (state is ErrorState) ...[
-                const Center(
-                  child: Text("Something went wrong please try again later"),
                 )
-              ] else ...[
-                Container()
-              ]
+              : Container();
+
+          return Stack(
+            children: [
+              loadingWidget,
+              mapWidget,
+              // bottom sheet
             ],
           );
         },

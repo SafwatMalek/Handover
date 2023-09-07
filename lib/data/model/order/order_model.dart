@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as map_location;
+import 'package:handover/data/model/geo_point_extension.dart';
 
 class OrderModel {
-  GeoPoint deliveryPoint;
-  GeoPoint pickUpPoint;
+  map_location.LatLng deliveryPoint;
+  map_location.LatLng pickUpPoint;
   String driverId;
   String orderId;
   String rate;
@@ -22,7 +24,7 @@ class OrderModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'Delivery_locaiton': deliveryPoint,
+      'delivery_location': deliveryPoint,
       'pickup_location': pickUpPoint,
       'driver_id': driverId,
       'order_id': orderId,
@@ -35,15 +37,14 @@ class OrderModel {
 
   factory OrderModel.fromMap(Map<String, dynamic>? map) {
     return OrderModel(
-      deliveryPoint: map?['Delivery_locaiton'],
-      pickUpPoint: map?['pickup_location'],
-      driverId: map?['driver_id'],
-      rate: map?['rate'],
-      review: map?['review'],
-      status: map?['status'],
-      userId: map?['user_id'],
-      orderId: map?['order_id']
-    );
+        deliveryPoint: (map?['delivery_location'] as GeoPoint).toLatLng(),
+        pickUpPoint: (map?['pickup_location'] as GeoPoint).toLatLng(),
+        driverId: map?['driver_id'],
+        rate: map?['rate'],
+        review: map?['review'],
+        status: map?['status'],
+        userId: map?['user_id'],
+        orderId: map?['order_id']);
   }
 
   @override
