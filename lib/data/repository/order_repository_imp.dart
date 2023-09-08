@@ -6,13 +6,17 @@ class OrderRepoImp implements IOrderRepository {
   final orderRef = FirebaseFirestore.instance
       .collection('orders')
       .withConverter<OrderModel>(
-        fromFirestore: (snapshots, _) =>
-            OrderModel.fromMap(snapshots.data()),
+        fromFirestore: (snapshots, _) => OrderModel.fromMap(snapshots.data()),
         toFirestore: (order, _) => order.toMap(),
       );
 
   @override
   Future<QuerySnapshot<OrderModel>> getCurrentOrder(String userId) async {
     return orderRef.where("user_id", isEqualTo: userId).get();
+  }
+
+  @override
+  Future<void> updateOrderStatus(String orderId, int status) async {
+    orderRef.doc(orderId).update({"status": status});
   }
 }

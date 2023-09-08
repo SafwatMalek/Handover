@@ -9,7 +9,7 @@ class OrderModel {
   String orderId;
   String rate;
   String review;
-  String status;
+  int status;
   String userId;
 
   OrderModel(

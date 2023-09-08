@@ -14,7 +14,7 @@ class OrderDataUseCaseImp implements OrderDataUseCase {
       var orderSnapshot = await _orderRepository.getCurrentOrder(id);
       return orderSnapshot.docChanges.first.doc.data()!;
     } catch (e) {
-      throw Exception("Order not found");
+      throw Exception("Order not found: $e");
     }
   }
 }

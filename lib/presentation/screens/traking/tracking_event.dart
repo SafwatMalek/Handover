@@ -4,20 +4,6 @@ abstract class TrackingEvent {}
 
 class InitializeMap extends TrackingEvent {}
 
-class StartTracking extends TrackingEvent {
-  String orderId;
-
-  StartTracking({
-    required this.orderId,
-  });
-}
-
-class NearToDeliveryPoint extends TrackingEvent {}
-
-class NearToPickupPoint extends TrackingEvent {}
-
-class TrackingComplete extends TrackingEvent {}
-
 class UpdateMapEvent extends TrackingEvent {
   OrderModel orderModel;
   Set<Marker> markers;
@@ -27,3 +13,13 @@ class UpdateMapEvent extends TrackingEvent {
     required this.markers,
   });
 }
+
+class UpdateOrderStatusEvent extends TrackingEvent {
+  OrderModel orderModel;
+
+  UpdateOrderStatusEvent({
+    required this.orderModel,
+  });
+}
+
+class TrackingComplete extends TrackingEvent {}
