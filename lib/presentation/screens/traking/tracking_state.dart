@@ -16,4 +16,6 @@ class UpdateMapMarkers extends TrackingState {
   });
 }
 
+class OrderCompleted extends TrackingState {}
+
 class ErrorState extends TrackingState {}

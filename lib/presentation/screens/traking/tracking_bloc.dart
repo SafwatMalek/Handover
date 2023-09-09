@@ -68,38 +68,28 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
           5000,
           "Please be ready, the order on the way for pickup",
           OrderStatus.readyToPickup);
-    }
-    else if (order.status == OrderStatus.readyToPickup.value) {
+    } else if (order.status == OrderStatus.readyToPickup.value) {
       await _validateDeliveryPoint(order, driver, 100,
           "Driver very closer, be ready for pickup", OrderStatus.pickedUp);
-    }
-    else if (order.status == OrderStatus.pickedUp.value) {
+    } else if (order.status == OrderStatus.pickedUp.value) {
       order.status = OrderStatus.nearToDelivery.value;
       await _updateOrder.execute(order.orderId.toString(), order.status);
       add(UpdateOrderStatusEvent(orderModel: order));
-    }
-    else if (order.status == OrderStatus.nearToDelivery.value) {
+    } else if (order.status == OrderStatus.nearToDelivery.value) {
       await _validateDeliveryPoint(
           order,
           driver,
           5000,
           "Driver very closer, be ready for received",
           OrderStatus.readyToDeliver);
-    }
-    else if (order.status == OrderStatus.readyToDeliver.value) {
-      await _validateDeliveryPoint(
-          order,
-          driver,
-          100,
-          "Driver very closer, be ready for received",
-          OrderStatus.delivered);
-    }
-    else if (order.status == OrderStatus.delivered.value) {
+    } else if (order.status == OrderStatus.readyToDeliver.value) {
+      await _validateDeliveryPoint(order, driver, 100,
+          "Driver very closer, be ready for received", OrderStatus.delivered);
+    } else if (order.status == OrderStatus.delivered.value) {
       order.status = OrderStatus.delivered.value;
       await _updateOrder.execute(order.orderId.toString(), order.status);
-      add(UpdateOrderStatusEvent(orderModel: order));
-    }
-    else {
+      add(TrackingComplete());
+    } else {
       throw Exception("unhandled order state");
     }
   }
@@ -135,5 +125,6 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
 
   onDispose(TrackingEvent event, Emitter<TrackingState> emitter) async {
     _driverStream?.cancel();
+    emitter(OrderCompleted());
   }
 }
