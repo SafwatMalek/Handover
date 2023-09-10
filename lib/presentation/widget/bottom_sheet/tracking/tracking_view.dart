@@ -22,6 +22,7 @@ class _TrackingViewState extends State<TrackingView> {
     return Container(
       padding: EdgeInsets.only(top: context.screenHeightUnit() * 4),
       child: StepperComponent(
+        paddingHorizontal: context.screenWidthUnit() * 4,
         steps: [
           Steps(StepsState.complete, "On the way"),
           Steps(StepsState.complete, "Picked up delivery"),

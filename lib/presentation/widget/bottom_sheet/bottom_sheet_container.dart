@@ -7,11 +7,13 @@ import 'bottom_sheet_status.dart';
 class BottomSheetContainer extends StatefulWidget {
   final OrderModel order;
   final Widget child;
+  final double height;
 
   const BottomSheetContainer({
     super.key,
     required this.order,
     required this.child,
+    required this.height,
   });
 
   @override
@@ -71,7 +73,7 @@ class _BottomSheetContainerState extends State<BottomSheetContainer> {
       children: [
         //expand
         Container(
-          height: context.screenHeightUnit() * 50,
+          height: context.screenHeightUnit() * widget.height,
           margin: const EdgeInsets.only(top: 60),
           padding: const EdgeInsets.only(top: 68),
           width: double.infinity,

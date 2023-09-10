@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geodesy/geodesy.dart' as geo_distance;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -40,22 +41,27 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
   initializeMapHandler(TrackingEvent event, Emitter<TrackingState> emit) async {
     emit(LoadingState());
     var order = await _orderUseCase.execute("567");
-    _driverStream = _driverUseCase.execute(order.orderId).listen((event) {
+    _driverStream = _driverUseCase.execute(order.orderId).listen((event) async {
       var driver = event.docs.first.data();
       Set<Marker> markers = {
-        _addMarkers("driver", driver.location),
-        _addMarkers("pickup", order.pickUpPoint),
-        _addMarkers("delivery", order.deliveryPoint)
+        await _addMarkers(
+            "driver", driver.location, "assets/images/driver.png"),
+        await _addMarkers(
+            "pickup", order.pickUpPoint, "assets/images/pickup.png"),
+        await _addMarkers(
+            "delivery", order.deliveryPoint, "assets/images/delivery.png")
       };
       add(UpdateMapEvent(orderModel: order, markers: markers));
       _updateOrderStatus(order, driver);
     });
   }
 
-  _addMarkers(String id, LatLng position) {
+  _addMarkers(String id, LatLng position, String imagePath) async {
     var marker = Marker(
       markerId: MarkerId(id),
       position: position,
+      icon: await BitmapDescriptor.fromAssetImage(
+          const ImageConfiguration(), imagePath),
     );
     return marker;
   }
