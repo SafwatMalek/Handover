@@ -6,16 +6,6 @@ class TrackingInitial extends TrackingState {}
 
 class LoadingState extends TrackingState {}
 
-class UpdateMapMarkers extends TrackingState {
-  OrderModel orderModel;
-  Set<Marker> markers;
-
-  UpdateMapMarkers({
-    required this.orderModel,
-    required this.markers,
-  });
-}
-
-class OrderCompleted extends TrackingState {}
+class StartTracking extends TrackingState {}
 
 class ErrorState extends TrackingState {}

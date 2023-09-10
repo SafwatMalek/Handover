@@ -19,4 +19,9 @@ class OrderRepoImp implements IOrderRepository {
   Future<void> updateOrderStatus(String orderId, int status) async {
     orderRef.doc(orderId).update({"status": status});
   }
+
+  @override
+  Stream<QuerySnapshot<OrderModel>> getOrderListener(String orderId) {
+    return orderRef.where("order_id", isEqualTo: orderId).snapshots();
+  }
 }

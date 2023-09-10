@@ -15,6 +15,8 @@ import 'package:handover/domain/use_case/driver/driver_location_use_case.dart';
 import 'package:handover/domain/use_case/driver/driver_location_use_case_imp.dart';
 import 'package:handover/domain/use_case/order/order_data_use_case.dart';
 import 'package:handover/domain/use_case/order/order_data_use_case_imp.dart';
+import 'package:handover/domain/use_case/order/order_listener/order_listener_use_case.dart';
+import 'package:handover/domain/use_case/order/order_listener/order_listener_use_case_imp.dart';
 import 'package:handover/domain/use_case/order/update_order/update_order_use_case.dart';
 import 'package:handover/domain/use_case/order/update_order/update_order_use_case_imp.dart';
 
@@ -26,21 +28,33 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
   final DriverLocationUseCase _driverUseCase =
       DriverLocationUseCaseImp(DriverRepoImp());
   final OrderDataUseCase _orderUseCase = OrderDataUseCaseImp(OrderRepoImp());
+  final OrderListenerUseCase _useCase = OrderListenerUseCaseImp(OrderRepoImp());
   final UpdateOrderUseCase _updateOrder = UpdateOrderUseCaseImp(OrderRepoImp());
+
   StreamSubscription? _driverStream;
+  StreamSubscription? _orderStream;
+
+  final _markerStream = StreamController<Set<Marker>>();
+
+  Stream<Set<Marker>> get markerStream => _markerStream.stream;
+
+  final _orderDataStream = StreamController<OrderModel>();
+
+  Stream<OrderModel> get order => _orderDataStream.stream;
 
   TrackingBloc() : super(TrackingInitial()) {
     on<InitializeMap>(initializeMapHandler);
-    on<TrackingComplete>(onDispose);
-    on<UpdateMapEvent>((event, emit) => emit(UpdateMapMarkers(
-          orderModel: event.orderModel,
-          markers: event.markers,
-        )));
   }
 
   initializeMapHandler(TrackingEvent event, Emitter<TrackingState> emit) async {
     emit(LoadingState());
     var order = await _orderUseCase.execute("567");
+    await _getOrderListener(order.orderId);
+    await _getDriverListener(order);
+    emit(StartTracking());
+  }
+
+  _getDriverListener(OrderModel order) async {
     _driverStream = _driverUseCase.execute(order.orderId).listen((event) async {
       var driver = event.docs.first.data();
       Set<Marker> markers = {
@@ -51,8 +65,15 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
         await _addMarkers(
             "delivery", order.deliveryPoint, "assets/images/delivery.png")
       };
-      add(UpdateMapEvent(orderModel: order, markers: markers));
+      _markerStream.add(markers);
       _updateOrderStatus(order, driver);
+    });
+  }
+
+  _getOrderListener(String orderId) async {
+    _orderStream = _useCase.execute(orderId).listen((event) {
+      var order = event.docs.first.data();
+      _orderDataStream.add(order);
     });
   }
 
@@ -78,9 +99,8 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
       await _validateDeliveryPoint(order, driver, 100,
           "Driver very closer, be ready for pickup", OrderStatus.pickedUp);
     } else if (order.status == OrderStatus.pickedUp.value) {
-      order.status = OrderStatus.nearToDelivery.value;
-      await _updateOrder.execute(order.orderId.toString(), order.status);
-      add(UpdateOrderStatusEvent(orderModel: order));
+      await _updateOrder.execute(
+          order.orderId, OrderStatus.nearToDelivery.value);
     } else if (order.status == OrderStatus.nearToDelivery.value) {
       await _validateDeliveryPoint(
           order,
@@ -92,9 +112,8 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
       await _validateDeliveryPoint(order, driver, 100,
           "Driver very closer, be ready for received", OrderStatus.delivered);
     } else if (order.status == OrderStatus.delivered.value) {
-      order.status = OrderStatus.delivered.value;
-      await _updateOrder.execute(order.orderId.toString(), order.status);
-      add(TrackingComplete());
+      await _updateOrder.execute(
+          order.orderId.toString(), OrderStatus.delivered.value);
     } else {
       throw Exception("unhandled order state");
     }
@@ -110,7 +129,6 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
     var isDriverReady = _isNearTo(driver.location, order.pickUpPoint, area);
     if (isDriverReady) {
       _sendNotification("Handover", message);
-      order.status = nextStatus.value;
       await _updateOrder.execute(order.orderId.toString(), order.status);
     }
   }
@@ -129,8 +147,10 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
     localNotification.showNotification(title, body);
   }
 
-  onDispose(TrackingEvent event, Emitter<TrackingState> emitter) async {
+  onDispose() async {
     _driverStream?.cancel();
-    emitter(OrderCompleted());
+    _orderStream?.cancel();
+    _orderDataStream.close();
+    _markerStream.close();
   }
 }
